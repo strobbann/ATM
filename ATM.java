@@ -1,6 +1,7 @@
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.InputMismatchException;
 
 public class ATM {
     private Map<String, Account> accounts;;
@@ -66,12 +67,10 @@ public class ATM {
 	int choice = -1;
 	while(choice != 0) {
 	    printMenu();
-	    choice = in.nextInt();
-	    // Empty Buffer
-	    in.nextLine();
+	    choice = getNumberInputInt();
 	    switch(choice) {
 		case 1: {
-		    withdraw(account);
+		    withdrawUI(account);
 		    break;
 		}
 		
@@ -86,7 +85,7 @@ public class ATM {
 	       	}
 		    
 		case 4: {
-		    calculateInterest(account);
+		    calculateInterestUI(account);
 		    break;
 		}
 
@@ -104,26 +103,69 @@ public class ATM {
 	}
     }
 
-    public void withdraw(Account fromAccount) {
-	System.out.println("How much do you want to withdraw");
-	int amount = in.nextInt();
-	//Empty buffer
-	in.nextLine();
-       	int balance = fromAccount.getBalance();
-
+    public void withdraw(Account fromAccount, int amount)throws InsufficientFundsException, IllegalAmountException {
+	int balance = fromAccount.getBalance();
 	if(amount > 2000){
-	    System.out.println("Cannot make a transaction larger than 2000" + currency);
+	    throw new IllegalAmountException(2000);
 	   	    
 	}else if(balance >= amount) {
 	    balance -= amount;
 	    fromAccount.setBalance(balance);
 	    System.out.println("Your balance is now: " + fromAccount.getBalance() + currency);
 	} else {
-	    System.out.println("Not enough money in account");
+	    throw new InsufficientFundsException();
+	}
+    }
+
+    public void withdrawUI(Account fromAccount) {
+	System.out.println("How much do you want to withdraw");
+	int amount = getNumberInputInt();
+	try{
+       	withdraw(fromAccount, amount);
+	} catch(InsufficientFundsException|IllegalAmountException ex) {
+	    System.err.println(ex.getMessage());
 	}
 	
     }
 
+    public int getNumberInputInt(){
+	boolean isCorrectInput = false;
+	while(!isCorrectInput){
+	    try {
+		Integer number  = in.nextInt();
+		isCorrectInput = true;
+		//EmptyBuffer
+		in.nextLine();
+		return number;
+		
+	    }catch (InputMismatchException ex) {
+		//EmptyBuffer
+		in.nextLine();
+		System.out.println("Incorrect value please enter a valid number.");
+	    }
+	}
+	return -1;
+    }
+
+    public double getNumberInputDouble() {
+        boolean isCorrectInput = false;
+	while(!isCorrectInput){
+	    try {
+		double number  = in.nextDouble();
+		isCorrectInput = true;
+		//EmptyBuffer
+		in.nextLine();
+		return number;
+		
+	    }catch (InputMismatchException ex) {
+		//EmptyBuffer
+		in.nextLine();
+		System.out.println("Incorrect value please enter a valid number.");
+	    }
+	}
+	return -1;
+    }
+    
     public void showBalance(Account fromAccount) {
 	System.out.println("Hi " + fromAccount.getName());
 	System.out.println("Your current balance is " + fromAccount.getBalance() + currency);
@@ -138,33 +180,38 @@ public class ATM {
 
     public void depositUI(Account toAccount) {
        System.out.println("How much do you want to deposit");
-       int deposit = in.nextInt();
-       //Empty buffer
-       in.nextLine();
+       int deposit = getNumberInputInt();
        deposit(toAccount, deposit);
        System.out.println("Your current balance is now " + toAccount.getBalance() + currency);
        
     }
 
-    public void calculateInterest(Account account) {
-	System.out.println("Put interest per year");
-	double interest = in.nextDouble();
-	System.out.println("Put amount of years");
-	int year = in.nextInt();
-	//Empty Buffer
-	in.nextLine();
+    public double calculateInterest(Account account, int years, double interest) {
 	double powerOf = interest;
-	
-	for(int i = 0; i < year-1; i++) {
+	for(int i = 0; i < years-1; i++) {
 	    powerOf = powerOf * interest;
-	}	
+	}
 	double amountInBank = account.getBalance() * powerOf;
+	return amountInBank;
+    }
+
+    public void calculateInterestUI(Account account) {
+	System.out.println("Put interest per year");
+	double interest = getNumberInputDouble();
+	System.out.println("Put amount of years");
+	int years = getNumberInputInt();
+	double amountInBank = calculateInterest(account, years, interest);
 	String amountInBankFormat = String.format("%.2f", amountInBank);
-	System.out.println("With " + interest + "% in " + year + " year/s you will have " +  amountInBankFormat + currency + " in bank");
+	System.out.println("With " + interest + "% in " + years + " year/s you will have " +  amountInBankFormat + currency + " in bank");
     }
 
     public Map<String, Account> getAccounts() {
 	return accounts;
+    }
+
+    public void save() {
+	ObjectIO.writeObject(accounts);
+	
     }
     
 }

@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.util.Map;
 import java.util.HashMap;
 public class ObjectIO {
-    private static String target = "/Users/Robert/Javacode/ATM/accounts.ser";
+    private static String target = "C:\\Users\\Robert\\javacode\\git\\ATM\\accounts.ser";
     // private static InputStream inputStream = Main.class.getResourceAsStream("accounts.ser");
     public ObjectIO() {
 	
@@ -21,7 +21,7 @@ public class ObjectIO {
 	}
 	
     }
-
+    @SuppressWarnings("unchecked")
     public static Map<String, Account> readObject() {
 	try(FileInputStream fileIn = new FileInputStream(target);
 	    ObjectInputStream in = new ObjectInputStream(fileIn)) {
